@@ -1,3 +1,4 @@
+"use client"
 import { User } from "next-auth";
 import React from "react";
 import { Avatar, AvatarFallback } from "./ui/avatar";
@@ -14,6 +15,7 @@ const UserAvatar = ({ user }: Props) => {
 				<div className="relative w-full h-full aspect-square">
 					<Image
 						fill
+						sizes="100%"
 						src={user.image}
 						alt="profile picture"
 						referrerPolicy="no-referrer"

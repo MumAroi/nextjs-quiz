@@ -6,7 +6,7 @@ import { type ThemeProviderProps } from "next-themes/dist/types";
 
 const Provider = ({ children, ...props }: ThemeProviderProps) => {
 	return (
-		<NextThemesProvider attribute="class" defaultTheme="system" enableSystem {...props}>
+		<NextThemesProvider {...props} attribute="class" defaultTheme="system" enableSystem>
 			<SessionProvider>{children}</SessionProvider>
 		</NextThemesProvider>
 	);
