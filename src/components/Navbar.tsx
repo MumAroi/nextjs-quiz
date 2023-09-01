@@ -3,6 +3,7 @@ import Link from "next/link";
 import React from "react";
 import SigninButton from "./SigninButton";
 import UserAccountNav from "./UserAccountNav";
+import ThemeToggle from "./ThemeToggle";
 
 type Props = {};
 
@@ -17,14 +18,18 @@ const Navbar = async (props: Props) => {
 						Quizmify
 					</p>
 				</Link>
-        <div className="flex items-center">
-          {/* Profile */}
-					{session?.user ? (
-						<UserAccountNav user={session.user}/>
-					): (
-						<SigninButton text="Sign In"/>
-					)}
-        </div>
+				<div className="flex item-center">
+					{/* Theme */}
+					<ThemeToggle className="mr-3"/>
+					<div className="flex items-center">
+						{/* Profile */}
+						{session?.user ? (
+							<UserAccountNav user={session.user} />
+						) : (
+							<SigninButton text="Sign In" />
+						)}
+					</div>
+				</div>
 			</div>
 		</div>
 	);
