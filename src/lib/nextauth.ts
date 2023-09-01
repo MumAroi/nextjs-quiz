@@ -1,4 +1,4 @@
-import { DefaultSession, NextAuthOptions } from "next-auth";
+import { DefaultSession, NextAuthOptions, getServerSession } from "next-auth";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { prisma } from "./db";
 import GoogleProvider from "next-auth/providers/google";
@@ -12,9 +12,9 @@ declare module "next-auth" {
 }
 
 declare module "next-auth/jwt" {
-  interface JWT {
-    id: string;
-  }
+	interface JWT {
+		id: string;
+	}
 }
 
 export const authOptions: NextAuthOptions = {
@@ -47,8 +47,12 @@ export const authOptions: NextAuthOptions = {
 	},
 	providers: [
 		GoogleProvider({
-			clientId: process.env.GOOGLE_CLIENT_ID ?? "",  
+			clientId: process.env.GOOGLE_CLIENT_ID ?? "",
 			clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? "",
-		})
-	]
+		}),
+	],
+};
+
+export const getAuthSession = () => {
+	return getServerSession(authOptions);
 };
