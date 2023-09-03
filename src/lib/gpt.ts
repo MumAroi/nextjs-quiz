@@ -1,4 +1,5 @@
 import OpenAI from "openai";
+import { gptQuestion } from "@/types";
 
 const openai = new OpenAI({
 	apiKey: process.env.OPENAI_API_KEY,
@@ -18,12 +19,7 @@ export async function strict_output(
 	temperature = 1,
 	num_tries = 3,
 	verbose = false,
-): Promise<
-	{
-		question: string;
-		answer: string;
-	}[]
-> {
+): Promise<gptQuestion[]> {
 	// if the user input is in a list, we also process the output as a list of json
 	const list_input: boolean = Array.isArray(user_prompt);
 	// if the output format contains dynamic elements of < or >, then add to the prompt to handle dynamic elements
@@ -86,8 +82,8 @@ export async function strict_output(
 
 		// try-catch block to ensure output format is adhered to
 		try {
-      console.log(res);
-      let  output: any = JSON.parse(res);
+			console.log(res);
+			let output: any = JSON.parse(res);
 
 			if (list_input) {
 				if (!Array.isArray(output)) {
