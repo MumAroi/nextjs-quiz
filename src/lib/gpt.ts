@@ -82,7 +82,6 @@ export async function strict_output(
 
 		// try-catch block to ensure output format is adhered to
 		try {
-			console.log(res);
 			let output: any = JSON.parse(res);
 
 			if (list_input) {

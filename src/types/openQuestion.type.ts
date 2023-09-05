@@ -1,4 +1,4 @@
-export type gptQuestion = {
+export type openQuestion = {
 	question: string;
 	answer: string;
 };

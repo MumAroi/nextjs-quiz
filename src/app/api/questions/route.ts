@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 import { ZodError } from "zod";
 import { gptQuestion } from "@/types";
 
-export const POST = async (req: Request, res: Response) => {
+export async function POST(req: Request, res: Response) {
 	try {
 		const body = await req.json();
 		const { topic, type, amount } = quizCreationSchema.parse(body);
@@ -61,4 +61,4 @@ export const POST = async (req: Request, res: Response) => {
 			);
 		}
 	}
-};
+}
