@@ -2,50 +2,71 @@
 import { cn, formatTimeDelta } from "@/lib/utils";
 import { Game, Question } from "@prisma/client";
 import { differenceInSeconds } from "date-fns";
-import { BarChart, ChevronRight, Link, Loader2, Timer } from "lucide-react";
+import { BarChart, ChevronRight, Loader2, Timer } from "lucide-react";
 import React from "react";
-import { Card, CardDescription, CardHeader, CardTitle } from "./ui/card";
+import {
+	Card,
+	CardDescription,
+	CardHeader,
+	CardTitle,
+} from "@/components/ui/card";
 import { Button, buttonVariants } from "./ui/button";
-import { useToast } from "./ui/use-toast";
-import axios from "axios";
-import { checkAnswerSchema } from "@/schemas/questions";
+import OpenEndedPercentage from "./OpenEndedPercentage";
+import BlankAnswerInput from "./BlankAnswerInput";
 import { useMutation } from "@tanstack/react-query";
 import { z } from "zod";
-import BlankAnswerInput from "./BlankAnswerInput";
+import { checkAnswerSchema, endGameSchema } from "@/schemas/questions";
+import axios from "axios";
+import { useToast } from "./ui/use-toast";
+import Link from "next/link";
 
 type Props = {
 	game: Game & { questions: Pick<Question, "id" | "question" | "answer">[] };
 };
 
 const OpenEnded = ({ game }: Props) => {
-	const [questionIndex, setQuestionIndex] = React.useState(0);
 	const [hasEnded, setHasEnded] = React.useState(false);
-	const [averagePercentage, setAveragePercentage] = React.useState(0);
+	const [questionIndex, setQuestionIndex] = React.useState(0);
 	const [blankAnswer, setBlankAnswer] = React.useState("");
-	const [now, setNow] = React.useState(new Date());
-
+	const [averagePercentage, setAveragePercentage] = React.useState(0);
 	const currentQuestion = React.useMemo(() => {
 		return game.questions[questionIndex];
 	}, [questionIndex, game.questions]);
-
+	const { mutate: endGame } = useMutation({
+		mutationFn: async () => {
+			const payload: z.infer<typeof endGameSchema> = {
+				gameId: game.id,
+			};
+			const response = await axios.post("/api/endGame", payload);
+			return response.data;
+		},
+	});
 	const { toast } = useToast();
-
+	const [now, setNow] = React.useState(new Date());
 	const { mutate: checkAnswer, isLoading: isChecking } = useMutation({
 		mutationFn: async () => {
 			let filledAnswer = blankAnswer;
 			document.querySelectorAll("#user-blank-input").forEach((input) => {
-				const inputItem = input as HTMLInputElement;
-				filledAnswer = filledAnswer.replace("_____", inputItem.value);
-				inputItem.value = "";
+				const answerInput = input as HTMLInputElement;
+				filledAnswer = filledAnswer.replace("_____", answerInput.value);
+				answerInput.value = "";
 			});
 			const payload: z.infer<typeof checkAnswerSchema> = {
 				questionId: currentQuestion.id,
-				userInput: "",
+				userInput: filledAnswer,
 			};
 			const response = await axios.post("/api/checkAnswer", payload);
 			return response.data;
 		},
 	});
+	React.useEffect(() => {
+		if (!hasEnded) {
+			const interval = setInterval(() => {
+				setNow(new Date());
+			}, 1000);
+			return () => clearInterval(interval);
+		}
+	}, [hasEnded]);
 
 	const handleNext = React.useCallback(() => {
 		checkAnswer(undefined, {
@@ -57,6 +78,7 @@ const OpenEnded = ({ game }: Props) => {
 					return (prev + percentageSimilar) / (questionIndex + 1);
 				});
 				if (questionIndex === game.questions.length - 1) {
+					endGame();
 					setHasEnded(true);
 					return;
 				}
@@ -70,8 +92,7 @@ const OpenEnded = ({ game }: Props) => {
 				});
 			},
 		});
-	}, [checkAnswer, questionIndex, toast, game.questions.length]);
-
+	}, [checkAnswer, questionIndex, toast, endGame, game.questions.length]);
 	React.useEffect(() => {
 		const handleKeyDown = (event: KeyboardEvent) => {
 			const key = event.key;
@@ -84,15 +105,6 @@ const OpenEnded = ({ game }: Props) => {
 			document.removeEventListener("keydown", handleKeyDown);
 		};
 	}, [handleNext]);
-
-	React.useEffect(() => {
-		if (!hasEnded) {
-			const interval = setInterval(() => {
-				setNow(new Date());
-			}, 1000);
-			return () => clearInterval(interval);
-		}
-	}, [hasEnded]);
 
 	if (hasEnded) {
 		return (
@@ -127,11 +139,8 @@ const OpenEnded = ({ game }: Props) => {
 						<Timer className="mr-2" />
 						{formatTimeDelta(differenceInSeconds(now, game.timeStarted))}
 					</div>
-					{/* <MCQCounter
-						correct_answers={stats.correct_answers}
-						wrong_answers={stats.wrong_answers}
-					/> */}
 				</div>
+				<OpenEndedPercentage percentage={averagePercentage} />
 			</div>
 			<Card className="w-full mt-4">
 				<CardHeader className="flex flex-row items-center">
@@ -152,9 +161,9 @@ const OpenEnded = ({ game }: Props) => {
 					answer={currentQuestion.answer}
 				/>
 				<Button
-					variant="default"
-					className="mt-2"
-					size="lg"
+					variant="outline"
+					className="mt-4"
+					disabled={isChecking || hasEnded}
 					onClick={() => {
 						handleNext();
 					}}

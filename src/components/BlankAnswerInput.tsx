@@ -16,7 +16,7 @@ const BlankAnswerInput = ({ answer, setBlankAnswer }: Props) => {
 			return_changed_case: false,
 			remove_duplicates: false,
 		});
-
+		// mix the keywords and pick 2
 		const shuffled = words.sort(() => 0.5 - Math.random());
 		return shuffled.slice(0, 2);
 	}, [answer]);
