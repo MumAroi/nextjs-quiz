@@ -6,7 +6,7 @@ import {
 	CardDescription,
 	CardHeader,
 	CardTitle,
-} from "./ui/card";
+} from "../ui/card";
 import { useForm } from "react-hook-form";
 import { quizCreationSchema } from "@/schemas/forms/quiz";
 import { z } from "zod";
@@ -19,17 +19,27 @@ import {
 	FormItem,
 	FormLabel,
 	FormMessage,
-} from "./ui/form";
-import { Button } from "./ui/button";
-import { Input } from "./ui/input";
+} from "../ui/form";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
 import { BookOpen, CopyCheck } from "lucide-react";
-import { Separator } from "./ui/separator";
+import { Separator } from "../ui/separator";
+import { useMutation } from "@tanstack/react-query";
+import axios, { AxiosError } from "axios";
+import router from "next/router";
 
 type QuizInput = z.infer<typeof quizCreationSchema>;
 
 type Props = {};
 
 const QuizCreation = (props: Props) => {
+	const { mutate: getQuestions, isLoading } = useMutation({
+		mutationFn: async ({ amount, topic, type }: QuizInput) => {
+			const response = await axios.post("/api/game", { amount, topic, type });
+			return response.data;
+		},
+	});
+
 	const form = useForm<QuizInput>({
 		resolver: zodResolver(quizCreationSchema),
 		defaultValues: {
@@ -39,8 +49,18 @@ const QuizCreation = (props: Props) => {
 		},
 	});
 
-	const onSubmit = (input: QuizInput) => {
-		alert(JSON.stringify(input, null, 2));
+	const onSubmit = (data: QuizInput) => {
+		getQuestions(data, {
+			onSuccess: ({ gameId }: { gameId: string }) => {
+				setTimeout(() => {
+					if (form.getValues("type") === "mcq") {
+						router.push(`/play/mcq/${gameId}`);
+					} else if (form.getValues("type") === "open_ended") {
+						router.push(`/play/open-ended/${gameId}`);
+					}
+				}, 2000);
+			},
+		});
 	};
 
 	form.watch();
@@ -122,7 +142,9 @@ const QuizCreation = (props: Props) => {
 									<BookOpen className="w-4 h-4 mr-2" /> Open Ended
 								</Button>
 							</div>
-							<Button type="submit">Submit</Button>
+							<Button disabled={isLoading} type="submit">
+								Submit
+							</Button>
 						</form>
 					</Form>
 				</CardContent>

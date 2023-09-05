@@ -67,6 +67,7 @@ export async function POST(req: Request, res: Response) {
 				}),
 			});
 		}
+		return NextResponse.json({ gameId: game.id }, { status: 200 });
 	} catch (error) {
 		if (error instanceof ZodError) {
 			return NextResponse.json(

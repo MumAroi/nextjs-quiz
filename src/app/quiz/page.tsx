@@ -1,4 +1,4 @@
-import QuizCreation from "@/components/QuizCreation";
+import QuizCreation from "@/components/forms/QuizCreation";
 import React from "react";
 
 export const metadata = {
