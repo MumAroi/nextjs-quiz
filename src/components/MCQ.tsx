@@ -11,22 +11,34 @@ import { z } from "zod";
 import { useMutation } from "@tanstack/react-query";
 import { useToast } from "./ui/use-toast";
 import Link from "next/link";
-import { cn } from "@/lib/utils";
+import { cn, formatTimeDelta } from "@/lib/utils";
+import { differenceInSeconds } from "date-fns";
 
 type Props = {
 	game: Game & { questions: Pick<Question, "id" | "options" | "question">[] };
 };
 
 const MCQ = ({ game }: Props) => {
-	const [questionIndex, setQuestionIndex] = React.useState<number>(0);
-	const [selectedChoice, setSelectedChoice] = React.useState<number>(0);
+	const [questionIndex, setQuestionIndex] = React.useState(0);
+	const [selectedChoice, setSelectedChoice] = React.useState(0);
 	const [stats, setStats] = React.useState({
 		correct_answers: 0,
 		wrong_answers: 0,
 	});
 	const [hasEnded, setHasEnded] = React.useState(false);
 
+	const [now, setNow] = React.useState(new Date());
+
 	const { toast } = useToast();
+
+	React.useEffect(() => {
+    const interval = setInterval(() => {
+      if (!hasEnded) {
+        setNow(new Date());
+      }
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [hasEnded]);
 
 	const currentQuestion = React.useMemo(() => {
 		return game.questions[questionIndex];
@@ -73,7 +85,7 @@ const MCQ = ({ game }: Props) => {
 					});
 				}
 				if (questionIndex === game.questions.length - 1) {
-          setHasEnded(true);
+					setHasEnded(true);
 					return;
 				}
 				setQuestionIndex((questionIndex) => questionIndex + 1);
@@ -106,21 +118,22 @@ const MCQ = ({ game }: Props) => {
 	}, [handleNext]);
 
 	if (hasEnded) {
-    return (
-      <div className="absolute flex flex-col justify-center -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2">
-        <div className="px-4 py-2 mt-2 font-semibold text-white bg-green-500 rounded-md whitespace-nowrap">
-          You Completed in{"3m 4s"}
-        </div>
-        <Link
-          href={`/statistics/${game.id}`}
-          className={cn(buttonVariants({ size: "lg" }), "mt-2")}
-        >
-          View Statistics
-          <BarChart className="w-4 h-4 ml-2" />
-        </Link>
-      </div>
-    );
-  }
+		return (
+			<div className="absolute flex flex-col justify-center -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2">
+				<div className="px-4 py-2 mt-2 font-semibold text-white bg-green-500 rounded-md whitespace-nowrap">
+					You Completed in{" "}
+					{formatTimeDelta(differenceInSeconds(now, game.timeStarted))}
+				</div>
+				<Link
+					href={`/statistics/${game.id}`}
+					className={cn(buttonVariants({ size: "lg" }), "mt-2")}
+				>
+					View Statistics
+					<BarChart className="w-4 h-4 ml-2" />
+				</Link>
+			</div>
+		);
+	}
 
 	return (
 		<div className="absolute -translate-x-1/2 -translate-y-1/2 md:w-[80vw] max-w-4xl w-[90vw] top-1/2 left-1/2">
@@ -135,9 +148,12 @@ const MCQ = ({ game }: Props) => {
 					</p>
 					<div className="flex self-start mt-3 text-slate-400">
 						<Timer className="mr-2" />
-						<span>00:00</span>
+						{formatTimeDelta(differenceInSeconds(now, game.timeStarted))}
 					</div>
-					<MCQCounter correct_answers={stats.correct_answers} wrong_answers={stats.wrong_answers} />
+					<MCQCounter
+						correct_answers={stats.correct_answers}
+						wrong_answers={stats.wrong_answers}
+					/>
 				</div>
 			</div>
 			<Card className="w-full mt-4">
