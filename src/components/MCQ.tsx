@@ -26,7 +26,6 @@ const MCQ = ({ game }: Props) => {
 		wrong_answers: 0,
 	});
 	const [hasEnded, setHasEnded] = React.useState(false);
-
 	const [now, setNow] = React.useState(new Date());
 
 	const { toast } = useToast();
