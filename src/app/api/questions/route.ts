@@ -1,13 +1,13 @@
 import { strict_output } from "@/lib/gpt";
-import { quizCreationSchema } from "@/schemas/forms/quiz";
+import { getQuestionsSchema } from "@/schemas/questions";
+import { gptQuestion } from "@/types";
 import { NextResponse } from "next/server";
 import { ZodError } from "zod";
-import { gptQuestion } from "@/types";
 
 export async function POST(req: Request, res: Response) {
 	try {
 		const body = await req.json();
-		const { topic, type, amount } = quizCreationSchema.parse(body);
+		const { amount, topic, type } = getQuestionsSchema.parse(body);
 		let questions: gptQuestion[] = [];
 		if (type === "open_ended") {
 			questions = await strict_output(
@@ -37,7 +37,7 @@ export async function POST(req: Request, res: Response) {
 		}
 		return NextResponse.json(
 			{
-				questions,
+				questions: questions,
 			},
 			{
 				status: 200,

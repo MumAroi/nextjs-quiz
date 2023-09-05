@@ -2,9 +2,8 @@ import { prisma } from "@/lib/db";
 import { getAuthSession } from "@/lib/nextauth";
 import { quizCreationSchema } from "@/schemas/forms/quiz";
 import { NextResponse } from "next/server";
-import { ZodError } from "zod";
+import { z } from "zod";
 import axios from "axios";
-import { mcqQuestion, openQuestion } from "@/types";
 
 export async function POST(req: Request, res: Response) {
 	try {
@@ -27,7 +26,6 @@ export async function POST(req: Request, res: Response) {
 				topic,
 			},
 		});
-
 		await prisma.topic_count.upsert({
 			where: {
 				topic,
@@ -53,24 +51,39 @@ export async function POST(req: Request, res: Response) {
 		);
 
 		if (type === "mcq") {
+			type mcqQuestion = {
+				question: string;
+				answer: string;
+				option1: string;
+				option2: string;
+				option3: string;
+			};
+
+			const manyData = data.questions.map((question: mcqQuestion) => {
+				// mix up the options lol
+				const options = [
+					question.option1,
+					question.option2,
+					question.option3,
+					question.answer,
+				].sort(() => Math.random() - 0.5);
+				return {
+					question: question.question,
+					answer: question.answer,
+					options: JSON.stringify(options),
+					gameId: game.id,
+					questionType: "mcq",
+				};
+			});
+
 			await prisma.question.createMany({
-				data: data.questions.map((question: mcqQuestion) => {
-					const options = [
-						question.option1,
-						question.option2,
-						question.option3,
-						question.answer,
-					].sort(() => Math.random() - 0.5);
-					return {
-						question: question.question,
-						answer: question.answer,
-						options: JSON.stringify(options),
-						gameId: game.id,
-						questionType: "mcq",
-					};
-				}),
+				data: manyData,
 			});
 		} else if (type === "open_ended") {
+			type openQuestion = {
+				question: string;
+				answer: string;
+			};
 			await prisma.question.createMany({
 				data: data.questions.map((question: openQuestion) => {
 					return {
@@ -82,9 +95,10 @@ export async function POST(req: Request, res: Response) {
 				}),
 			});
 		}
+
 		return NextResponse.json({ gameId: game.id }, { status: 200 });
 	} catch (error) {
-		if (error instanceof ZodError) {
+		if (error instanceof z.ZodError) {
 			return NextResponse.json(
 				{ error: error.issues },
 				{
@@ -92,7 +106,6 @@ export async function POST(req: Request, res: Response) {
 				},
 			);
 		} else {
-			console.error("elle gpt error", error);
 			return NextResponse.json(
 				{ error: "An unexpected error occurred." },
 				{
@@ -100,5 +113,50 @@ export async function POST(req: Request, res: Response) {
 				},
 			);
 		}
+	}
+}
+export async function GET(req: Request, res: Response) {
+	try {
+		const url = new URL(req.url);
+		const gameId = url.searchParams.get("gameId");
+		if (!gameId) {
+			return NextResponse.json(
+				{ error: "You must provide a game id." },
+				{
+					status: 400,
+				},
+			);
+		}
+
+		const game = await prisma.game.findUnique({
+			where: {
+				id: gameId,
+			},
+			include: {
+				questions: true,
+			},
+		});
+		if (!game) {
+			return NextResponse.json(
+				{ error: "Game not found." },
+				{
+					status: 404,
+				},
+			);
+		}
+
+		return NextResponse.json(
+			{ game },
+			{
+				status: 400,
+			},
+		);
+	} catch (error) {
+		return NextResponse.json(
+			{ error: "An unexpected error occurred." },
+			{
+				status: 500,
+			},
+		);
 	}
 }

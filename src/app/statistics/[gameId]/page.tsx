@@ -1,13 +1,14 @@
-import AccuracyCard from "@/components/statistics/AccuracyCard";
-import QuestionsList from "@/components/statistics/QuestionsList";
-import ResultsCard from "@/components/statistics/ResultsCard";
-import TimeTakenCard from "@/components/statistics/TimeTakenCard";
 import { buttonVariants } from "@/components/ui/button";
 import { prisma } from "@/lib/db";
 import { LucideLayoutDashboard } from "lucide-react";
 import Link from "next/link";
+
 import { redirect } from "next/navigation";
 import React from "react";
+import ResultsCard from "@/components/statistics/ResultsCard";
+import AccuracyCard from "@/components/statistics/AccuracyCard";
+import TimeTakenCard from "@/components/statistics/TimeTakenCard";
+import QuestionsList from "@/components/statistics/QuestionsList";
 
 type Props = {
 	params: {
@@ -40,7 +41,6 @@ const Statistics = async ({ params: { gameId } }: Props) => {
 		}, 0);
 		accuracy = totalPercentage / game.questions.length;
 	}
-
 	accuracy = Math.round(accuracy * 100) / 100;
 
 	return (
