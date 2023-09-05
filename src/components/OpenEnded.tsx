@@ -11,6 +11,7 @@ import axios from "axios";
 import { checkAnswerSchema } from "@/schemas/questions";
 import { useMutation } from "@tanstack/react-query";
 import { z } from "zod";
+import BlankAnswerInput from "./BlankAnswerInput";
 
 type Props = {
 	game: Game & { questions: Pick<Question, "id" | "question" | "answer">[] };
@@ -20,6 +21,7 @@ const OpenEnded = ({ game }: Props) => {
 	const [questionIndex, setQuestionIndex] = React.useState(0);
 	const [hasEnded, setHasEnded] = React.useState(false);
 	const [averagePercentage, setAveragePercentage] = React.useState(0);
+  const [blankAnswer, setBlankAnswer] = React.useState("");
 	const [now, setNow] = React.useState(new Date());
 
 	const currentQuestion = React.useMemo(() => {
@@ -121,6 +123,10 @@ const OpenEnded = ({ game }: Props) => {
 				</CardHeader>
 			</Card>
 			<div className="flex flex-col items-center justify-center w-full mt-4">
+				<BlankAnswerInput
+					setBlankAnswer={setBlankAnswer}
+					answer={currentQuestion.answer}
+				/>
 				<Button
 					variant="default"
 					className="mt-2"
