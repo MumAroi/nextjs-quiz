@@ -48,7 +48,7 @@ const DetailsDialog = (props: Props) => {
 					<hr />
 					<div className="my-2 font-semibold">
 						<h4 className="text-base font-semibold">Built with</h4>
-						<div className="grid justify-around grid-cols-4 mt-2 gap-y-3">
+						<div className="grid justify-around grid-cols-4 mt-2 gap-y-3 ">
 							<div className="flex items-center gap-2">
 								<Image
 									alt="planetscale"
@@ -85,7 +85,6 @@ const DetailsDialog = (props: Props) => {
 								<Image alt="openai" src="/openai.png" width={30} height={30} />
 								<span className="">OpenAI</span>
 							</div>
-
 							<div className="flex items-center gap-2">
 								<Image
 									alt="react query"
