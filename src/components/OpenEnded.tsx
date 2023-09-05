@@ -1,11 +1,11 @@
 "use client";
-import { formatTimeDelta } from "@/lib/utils";
+import { cn, formatTimeDelta } from "@/lib/utils";
 import { Game, Question } from "@prisma/client";
 import { differenceInSeconds } from "date-fns";
-import { ChevronRight, Loader2, Timer } from "lucide-react";
+import { BarChart, ChevronRight, Link, Loader2, Timer } from "lucide-react";
 import React from "react";
 import { Card, CardDescription, CardHeader, CardTitle } from "./ui/card";
-import { Button } from "./ui/button";
+import { Button, buttonVariants } from "./ui/button";
 import { useToast } from "./ui/use-toast";
 import axios from "axios";
 import { checkAnswerSchema } from "@/schemas/questions";
@@ -21,7 +21,7 @@ const OpenEnded = ({ game }: Props) => {
 	const [questionIndex, setQuestionIndex] = React.useState(0);
 	const [hasEnded, setHasEnded] = React.useState(false);
 	const [averagePercentage, setAveragePercentage] = React.useState(0);
-  const [blankAnswer, setBlankAnswer] = React.useState("");
+	const [blankAnswer, setBlankAnswer] = React.useState("");
 	const [now, setNow] = React.useState(new Date());
 
 	const currentQuestion = React.useMemo(() => {
@@ -32,6 +32,12 @@ const OpenEnded = ({ game }: Props) => {
 
 	const { mutate: checkAnswer, isLoading: isChecking } = useMutation({
 		mutationFn: async () => {
+			let filledAnswer = blankAnswer;
+			document.querySelectorAll("#user-blank-input").forEach((input) => {
+				const inputItem = input as HTMLInputElement;
+				filledAnswer = filledAnswer.replace("_____", inputItem.value);
+				inputItem.value = "";
+			});
 			const payload: z.infer<typeof checkAnswerSchema> = {
 				questionId: currentQuestion.id,
 				userInput: "",
@@ -87,6 +93,24 @@ const OpenEnded = ({ game }: Props) => {
 			return () => clearInterval(interval);
 		}
 	}, [hasEnded]);
+
+	if (hasEnded) {
+		return (
+			<div className="absolute flex flex-col justify-center -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2">
+				<div className="px-4 py-2 mt-2 font-semibold text-white bg-green-500 rounded-md whitespace-nowrap">
+					You Completed in{" "}
+					{formatTimeDelta(differenceInSeconds(now, game.timeStarted))}
+				</div>
+				<Link
+					href={`/statistics/${game.id}`}
+					className={cn(buttonVariants({ size: "lg" }), "mt-2")}
+				>
+					View Statistics
+					<BarChart className="w-4 h-4 ml-2" />
+				</Link>
+			</div>
+		);
+	}
 
 	return (
 		<div className="absolute -translate-x-1/2 -translate-y-1/2 md:w-[80vw] max-w-4xl w-[90vw] top-1/2 left-1/2">
