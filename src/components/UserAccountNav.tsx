@@ -1,5 +1,6 @@
 "use client";
-import { User } from "next-auth";
+
+import type { User } from "next-auth";
 import React from "react";
 import {
 	DropdownMenu,
@@ -7,21 +8,27 @@ import {
 	DropdownMenuItem,
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
-} from "./ui/dropdown-menu";
+} from "@/components/ui/dropdown-menu";
+import UserAvatar from "./UserAvatar";
 import Link from "next/link";
 import { signOut } from "next-auth/react";
 import { LogOut } from "lucide-react";
-import UserAvatar from "./UserAvatar";
 
 type Props = {
-	user: Pick<User, "name" | "email" | "image">;
+	user: Pick<User, "name" | "image" | "email">;
 };
 
 const UserAccountNav = ({ user }: Props) => {
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger>
-				<UserAvatar user={user}/>
+				<UserAvatar
+					className="w-10 h-10"
+					user={{
+						name: user.name || null,
+						image: user.image || null,
+					}}
+				/>
 			</DropdownMenuTrigger>
 			<DropdownMenuContent align="end">
 				<div className="flex items-center justify-start gap-2 p-2">
@@ -36,9 +43,11 @@ const UserAccountNav = ({ user }: Props) => {
 				</div>
 				<DropdownMenuSeparator />
 				<DropdownMenuItem asChild>
-					<Link href="/" >Meow</Link>
+					<Link href="/">Meow</Link>
 				</DropdownMenuItem>
+
 				<DropdownMenuSeparator />
+
 				<DropdownMenuItem
 					onSelect={(event) => {
 						event.preventDefault();

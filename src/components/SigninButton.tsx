@@ -1,13 +1,11 @@
-"use client"
+"use client";
 import React from "react";
 import { Button } from "./ui/button";
 import { signIn } from "next-auth/react";
 
-type Props = {
-	text: string;
-};
+type Props = { text: string };
 
-const SigninButton = ({ text }: Props) => {
+const SignInButton = ({ text }: Props) => {
 	return (
 		<Button
 			onClick={() => {
@@ -19,4 +17,4 @@ const SigninButton = ({ text }: Props) => {
 	);
 };
 
-export default SigninButton;
+export default SignInButton;

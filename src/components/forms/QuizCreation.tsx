@@ -27,12 +27,19 @@ import { Separator } from "../ui/separator";
 import { useMutation } from "@tanstack/react-query";
 import axios, { AxiosError } from "axios";
 import router from "next/router";
+import LoadingQuestions from "../LoadingQuestions";
+import { toast } from "../ui/use-toast";
 
 type QuizInput = z.infer<typeof quizCreationSchema>;
 
-type Props = {};
+type Props = {
+	topic: string;
+};
 
-const QuizCreation = (props: Props) => {
+const QuizCreation = ({ topic }: Props) => {
+	const [showLoader, setShowLoader] = React.useState(false);
+	const [finishedLoading, setFinishedLoading] = React.useState(false);
+
 	const { mutate: getQuestions, isLoading } = useMutation({
 		mutationFn: async ({ amount, topic, type }: QuizInput) => {
 			const response = await axios.post("/api/game", { amount, topic, type });
@@ -43,15 +50,29 @@ const QuizCreation = (props: Props) => {
 	const form = useForm<QuizInput>({
 		resolver: zodResolver(quizCreationSchema),
 		defaultValues: {
-			topic: "",
-			type: "mcq",
+			topic: topic,
+			type: "open_ended",
 			amount: 3,
 		},
 	});
 
-	const onSubmit = (data: QuizInput) => {
+	const onSubmit = async (data: QuizInput) => {
+		setShowLoader(true);
 		getQuestions(data, {
+			onError: (error) => {
+				setShowLoader(false);
+				if (error instanceof AxiosError) {
+					if (error.response?.status === 500) {
+						toast({
+							title: "Error",
+							description: "Something went wrong. Please try again later.",
+							variant: "destructive",
+						});
+					}
+				}
+			},
 			onSuccess: ({ gameId }: { gameId: string }) => {
+				setFinishedLoading(true);
 				setTimeout(() => {
 					if (form.getValues("type") === "mcq") {
 						router.push(`/play/mcq/${gameId}`);
@@ -64,6 +85,10 @@ const QuizCreation = (props: Props) => {
 	};
 
 	form.watch();
+
+	if (showLoader) {
+		return <LoadingQuestions finished={finishedLoading} />;
+	}
 
 	return (
 		<div className="absolute -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2">

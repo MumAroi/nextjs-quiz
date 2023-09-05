@@ -1,7 +1,7 @@
 import { getAuthSession } from "@/lib/nextauth";
 import Link from "next/link";
 import React from "react";
-import SigninButton from "./SigninButton";
+import SigninButton from "./SignInButton";
 import UserAccountNav from "./UserAccountNav";
 import ThemeToggle from "./ThemeToggle";
 
