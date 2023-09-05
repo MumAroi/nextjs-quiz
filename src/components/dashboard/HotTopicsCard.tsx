@@ -5,7 +5,7 @@ import {
 	CardDescription,
 	CardHeader,
 	CardTitle,
-} from "../ui/card";
+} from "@/components/ui/card";
 import WordCloud from "../WordCloud";
 import { prisma } from "@/lib/db";
 
