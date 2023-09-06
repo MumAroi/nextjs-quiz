@@ -6,5 +6,5 @@ export default withAuth({
 });
 
 export const config = {
-	matcher: ["/dashboard", "/quiz", "/play", "/statistics", "/api/game", "/api/questions"],
+	matcher: ["/dashboard", "/quiz", "/play", "/statistics"],
 };

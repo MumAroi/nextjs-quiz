@@ -4,6 +4,7 @@ import { quizCreationSchema } from "@/schemas/forms/quiz";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import axios from "axios";
+import { mcqQuestion, openQuestion } from "@/types";
 
 export async function POST(req: Request, res: Response) {
 	try {
@@ -49,16 +50,8 @@ export async function POST(req: Request, res: Response) {
 				type,
 			},
 		);
-
+		console.log("🚀 ~ POST ~ data:", data);
 		if (type === "mcq") {
-			type mcqQuestion = {
-				question: string;
-				answer: string;
-				option1: string;
-				option2: string;
-				option3: string;
-			};
-
 			const manyData = data.questions.map((question: mcqQuestion) => {
 				// mix up the options lol
 				const options = [
@@ -75,15 +68,10 @@ export async function POST(req: Request, res: Response) {
 					questionType: "mcq",
 				};
 			});
-
 			await prisma.question.createMany({
 				data: manyData,
 			});
 		} else if (type === "open_ended") {
-			type openQuestion = {
-				question: string;
-				answer: string;
-			};
 			await prisma.question.createMany({
 				data: data.questions.map((question: openQuestion) => {
 					return {
